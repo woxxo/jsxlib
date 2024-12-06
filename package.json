@@ -6,9 +6,9 @@
 	"main": "./jsx/jsx-runtime.js",
 	"repository": "github:woxxo/jsxlib",
 	"exports": {
-	  ".": "./jsx/jsx-runtime.js",
-	  "./jsx-runtime": "./jsx/jsx-runtime.js",
-	  "./jsx-dev-runtime": "./jsx/jsx-runtime.js"
+		".": "./jsx/jsx-runtime.js",
+		"./jsx-runtime": "./jsx/jsx-runtime.js",
+		"./jsx-dev-runtime": "./jsx/jsx-runtime.js"
 	},
 	"scripts": {
 		"build": "NODE_ENV=production bun build index.jsx --outdir ./out",
@@ -17,4 +17,3 @@
 		"start": "NODE_ENV=production bun index.jsx"
 	}
 }
-  

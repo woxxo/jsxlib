@@ -1,208 +1,168 @@
-// jsx-runtime.mjs
+// @bun
+// jsx-runtime.ts
 (() => {
   if (typeof Symbol.toHtmlTag === "symbol")
     return;
   Object.defineProperty(Symbol, "toHtmlTag", {
     value: Symbol("toHtmlTag"),
-    enumerable: false,
-    configurable: true
+    enumerable: !1,
+    configurable: !0
   });
 })();
-var mapChildren = (children, accumulator) => {
-  switch (typeof children) {
+var Q = (r, g) => {
+  switch (typeof r) {
     case "string":
-      accumulator.push({ type: "textNode", text: children });
+      g.push({ type: "textNode", text: r });
       break;
     case "number":
-      accumulator.push({ type: "textNode", text: children.toString() });
+      g.push({ type: "textNode", text: r.toString() });
       break;
     case "object":
-      if (Array.isArray(children)) {
-        for (let i = 0;i < children.length; i++) {
-          const child = children[i];
-          mapChildren(child, accumulator);
+      if (Array.isArray(r))
+        for (let y = 0;y < r.length; y++) {
+          const P = r[y];
+          Q(P, g);
         }
-      } else if (children != null) {
-        if (Symbol.toHtmlTag in children && typeof children[Symbol.toHtmlTag] === "function") {
-          const html = String(children[Symbol.toHtmlTag]());
-          accumulator.push({ type: "textNode", text: html });
-        } else {
-          accumulator.push(children);
-        }
-      }
+      else if (r != null)
+        if (Symbol.toHtmlTag in r && typeof r[Symbol.toHtmlTag] === "function") {
+          const y = String(r[Symbol.toHtmlTag]());
+          g.push({ type: "textNode", text: y });
+        } else
+          g.push(r);
       break;
   }
-  return accumulator;
-};
-var createElement = (tag, props, ...children) => {
-  props ?? (props = {});
-  const finalChildren = [];
-  for (let i = 0;i < children.length; i++) {
-    mapChildren(children[i], finalChildren);
-  }
-  if (props?.children) {
-    mapChildren(props.children, finalChildren);
-  }
-  props.children = finalChildren;
-  Object.freeze(finalChildren);
-  Object.freeze(props);
-  return {
+  return g;
+}, v = (r, g, ...y) => {
+  g ??= {};
+  const P = [];
+  for (let J = 0;J < y.length; J++)
+    Q(y[J], P);
+  if (g?.children)
+    Q(g.children, P);
+  return g.children = P, Object.freeze(P), Object.freeze(g), {
     type: "tag",
-    tag,
-    props
+    tag: r,
+    props: g
   };
-};
-var jsx = createElement;
-var jsxs = jsx;
-var Fragment = "";
+}, R = v, u = R;
+var x = "";
 
-// ../jsxte-render-error.mjs
-var __defProp = Object.defineProperty;
-var __defNormalProp = (obj, key, value) => (key in obj) ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField = (obj, key, value) => {
-  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
+// ../jsxte-render-error.ts
+var h = (r, g) => {
+  const y = [];
+  for (let P = r.length - 1;P >= 0; P--)
+    y.push(g(r[P]));
+  return y;
 };
-var mapReverse = (arr, fn) => {
-  const result = [];
-  for (let i = arr.length - 1;i >= 0; i--) {
-    result.push(fn(arr[i]));
+
+class $ extends Error {
+  static is(r) {
+    return r instanceof $;
   }
-  return result;
-};
-var JsxteRenderError = class _JsxteRenderError extends Error {
-  constructor(message, insideTag, causedBy) {
-    super(message, { cause: causedBy });
-    __publicField(this, "baseMessage", "");
-    __publicField(this, "parentTags", []);
-    this.name = "JsxteRenderError";
-    this.baseMessage = message;
-    if (insideTag) {
-      this.parentTags.push(insideTag);
-    }
-    if (this.cause == null) {
+  baseMessage = "";
+  parentTags = [];
+  constructor(r, g, y) {
+    super(r, { cause: y });
+    if (this.name = "JsxteRenderError", this.baseMessage = r, g)
+      this.parentTags.push(g);
+    if (this.cause == null)
       Object.defineProperty(this, "cause", {
-        value: causedBy,
-        enumerable: true,
-        writable: true
+        value: y,
+        enumerable: !0,
+        writable: !0
       });
-    }
   }
-  static is(err) {
-    return err instanceof _JsxteRenderError;
-  }
-  pushParent(tag) {
-    this.parentTags.push(tag);
+  pushParent(r) {
+    this.parentTags.push(r);
   }
   regenerateMessage() {
-    this.message = `The below error has occurred in:
-${mapReverse(this.parentTags.filter((t) => t !== ""), (tag) => `<${tag}>`).join("\n")}
-
-${this.baseMessage}`;
+    this.message = `The below error has occurred in:\n${h(this.parentTags.filter((r) => r !== ""), (r) => `<${r}>`).join("\n")}\n\n${this.baseMessage}`;
   }
-};
-
-// ../dom-renderer/dom-renderer.mjs
-var __defProp2 = Object.defineProperty;
-var __defNormalProp2 = (obj, key, value) => (key in obj) ? __defProp2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField2 = (obj, key, value) => {
-  __defNormalProp2(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
-var DomRenderer = class {
-  constructor(window, options = {}) {
-    this.window = window;
-    this.options = options;
-    __publicField2(this, "generator");
-    __publicField2(this, "setAttribute", (element, name, value) => {
-      if (typeof value === "boolean") {
-        if (value) {
-          value = name;
-        } else {
-          return;
-        }
-      }
-      element.setAttribute(name, value);
-    });
-    if (options.attributeSetter) {
-      this.setAttribute = options.attributeSetter;
-    }
-    const doc = this.window.document;
-    const domrenderer = this;
-
-    class DomGenerator {
-      createElement(type, attributes, children) {
-        const element = doc.createElement(type);
-        for (const [name, value] of attributes) {
-          domrenderer.setAttribute(element, name, value);
-        }
-        for (const child of children) {
-          element.appendChild(child);
-        }
-        return element;
-      }
-      createTextNode(text) {
-        return doc.createTextNode(String(text));
-      }
-      createFragment(children) {
-        const fragment = doc.createDocumentFragment();
-        for (const child of children) {
-          fragment.appendChild(child);
-        }
-        return fragment;
-      }
-    }
-    this.generator = new DomGenerator;
-  }
-  render(component, componentApi) {
-    const renderer = new JsxteRenderer(this.generator, {
-      ...this.options,
-      allowAsync: false
-    }, componentApi);
-    return renderer.render(component);
-  }
-  async renderAsync(component, componentApi) {
-    const renderer = new JsxteRenderer(this.generator, {
-      ...this.options,
-      allowAsync: true
-    }, componentApi);
-    return renderer.render(component);
-  }
-};
-
-// ../utilities/join.mjs
-function join(arr, separator = "\n") {
-  let result = arr[0] ?? "";
-  const until = arr.length;
-  for (let i = 1;i < until; i++) {
-    result += separator + arr[i];
-  }
-  return result;
 }
 
-// ../html-renderer/attribute-to-html-tag-string.mjs
-var attributeToHtmlTagString = ([key, value]) => {
-  if (value === true) {
-    return `${key}`;
+// ../dom-renderer/dom-renderer.ts
+class U {
+  r;
+  g;
+  generator;
+  setAttribute = (r, g, y) => {
+    if (typeof y === "boolean")
+      if (y)
+        y = g;
+      else
+        return;
+    r.setAttribute(g, y);
+  };
+  constructor(r, g = {}) {
+    this.window = r;
+    this.options = g;
+    if (g.attributeSetter)
+      this.setAttribute = g.attributeSetter;
+    const y = this.window.document, P = this;
+
+    class J {
+      createElement(b, S, H) {
+        const T = y.createElement(b);
+        for (let [X, s] of S)
+          P.setAttribute(T, X, s);
+        for (let X of H)
+          T.appendChild(X);
+        return T;
+      }
+      createTextNode(b) {
+        return y.createTextNode(String(b));
+      }
+      createFragment(b) {
+        const S = y.createDocumentFragment();
+        for (let H of b)
+          S.appendChild(H);
+        return S;
+      }
+    }
+    this.generator = new J;
   }
-  if (value === false || value === null || value === undefined) {
+  render(r, g) {
+    return new E(this.generator, {
+      ...this.options,
+      allowAsync: !1
+    }, g).render(r);
+  }
+  async renderAsync(r, g) {
+    return new E(this.generator, {
+      ...this.options,
+      allowAsync: !0
+    }, g).render(r);
+  }
+}
+
+// ../utilities/join.ts
+function B(r, g = "\n") {
+  let y = r[0] ?? "";
+  const P = r.length;
+  for (let J = 1;J < P; J++)
+    y += g + r[J];
+  return y;
+}
+
+// ../html-renderer/attribute-to-html-tag-string.ts
+var m = ([r, g]) => {
+  if (g === !0)
+    return `${r}`;
+  if (g === !1 || g === null || g === void 0)
     return "";
+  return `${r}="${g.toString().replace(/"/g, "&quot;")}"`;
+}, F = (r) => {
+  const g = [];
+  for (let y = 0;y < r.length; y++) {
+    const P = r[y], J = m(P);
+    if (J.length > 0)
+      g.push(J);
   }
-  return `${key}="${value.toString().replace(/"/g, "&quot;")}"`;
-};
-var mapAttributesToHtmlTagString = (attributes) => {
-  const results = [];
-  for (let i = 0;i < attributes.length; i++) {
-    const attribute = attributes[i];
-    const html = attributeToHtmlTagString(attribute);
-    if (html.length > 0)
-      results.push(html);
-  }
-  return join(results, " ");
+  return B(g, " ");
 };
 
-// ../utilities/self-closing-tag-list.mjs
-var SELF_CLOSING_TAG_LIST = [
+// ../utilities/self-closing-tag-list.ts
+var Y = [
   "area",
   "base",
   "br",
@@ -219,855 +179,742 @@ var SELF_CLOSING_TAG_LIST = [
   "wbr"
 ];
 
-// ../html-renderer/base-html-generator.mjs
-var BaseHtmlGenerator = class _BaseHtmlGenerator {
-  constructor(options) {
-    this.options = options;
+// ../html-renderer/base-html-generator.ts
+class V {
+  r;
+  constructor(r) {
+    this.options = r;
   }
-  generateTagCompact(tag, attributes, content) {
-    if (attributes) {
-      attributes = " " + attributes;
-    } else {
-      attributes = "";
-    }
-    if (!content || content.length === 0) {
-      if (SELF_CLOSING_TAG_LIST.includes(tag)) {
-        return `<${tag}${attributes} />`;
-      } else {
-        return `<${tag}${attributes}></${tag}>`;
-      }
-    }
-    return `<${tag}${attributes}>${content}</${tag}>`;
+  generateTagCompact(r, g, y) {
+    if (g)
+      g = " " + g;
+    else
+      g = "";
+    if (!y || y.length === 0)
+      if (Y.includes(r))
+        return `<${r}${g} />`;
+      else
+        return `<${r}${g}></${r}>`;
+    return `<${r}${g}>${y}</${r}>`;
   }
-  flattenChildrenCompact(children) {
-    return join(children, "");
+  flattenChildrenCompact(r) {
+    return B(r, "");
   }
-  generateTag(tag, attributes, content) {
-    if (attributes) {
-      attributes = " " + attributes;
-    } else {
-      attributes = "";
-    }
-    if (!content || content.length === 0) {
-      if (SELF_CLOSING_TAG_LIST.includes(tag)) {
+  generateTag(r, g, y) {
+    if (g)
+      g = " " + g;
+    else
+      g = "";
+    if (!y || y.length === 0)
+      if (Y.includes(r))
         return [{
           type: "tag-selfclose",
-          tag,
-          content: `<${tag}${attributes} />`
+          tag: r,
+          content: `<${r}${g} />`
         }];
-      } else {
+      else
         return [{
           type: "tag-inline",
-          tag,
-          content: `<${tag}${attributes}></${tag}>`
+          tag: r,
+          content: `<${r}${g}></${r}>`
         }];
-      }
-    }
     return [
       {
         type: "tag-open",
-        tag,
-        content: `<${tag}${attributes}>`
+        tag: r,
+        content: `<${r}${g}>`
       },
-      ...content,
+      ...y,
       {
         type: "tag-close",
-        tag,
-        content: `</${tag}>`
+        tag: r,
+        content: `</${r}>`
       }
     ];
   }
-  flattenChildren(children) {
-    const result = [];
-    for (let i = 0;i < children.length; i++) {
-      const child = children[i];
-      if (child.length === 1 && child[0].type === "text") {
-        const last = result.at(-1);
-        if (last?.type === "text") {
-          last.content += child[0].content;
+  flattenChildren(r) {
+    const g = [];
+    for (let y = 0;y < r.length; y++) {
+      const P = r[y];
+      if (P.length === 1 && P[0].type === "text") {
+        const b = g.at(-1);
+        if (b?.type === "text") {
+          b.content += P[0].content;
           continue;
         }
       }
-      const lasIdx = result.length;
-      for (let j = 0;j < child.length; j++) {
-        result[lasIdx + j] = child[j];
-      }
+      const J = g.length;
+      for (let b = 0;b < P.length; b++)
+        g[J + b] = P[b];
     }
-    return result;
+    return g;
   }
-  static leftPad(str, pad) {
-    if (!str.includes("\n")) {
-      return pad + str;
-    } else {
-      const lines = str.split("\n");
-      for (let i = 0;i < lines.length; i++) {
-        lines[i] = pad + lines[i];
-      }
-      return join(lines);
+  static leftPad(r, g) {
+    if (!r.includes("\n"))
+      return g + r;
+    else {
+      const y = r.split("\n");
+      for (let P = 0;P < y.length; P++)
+        y[P] = g + y[P];
+      return B(y);
     }
   }
-  static trimContent(content) {
-    let leftWhitespace = 0;
-    let rightWhitespace = 0;
-    let wsLeft = false;
-    let wsRight = false;
-    for (let i = 0;i < content.length; i++) {
-      if (content[i] === " " || content[i] === "\n") {
-        leftWhitespace += 1;
-      } else {
+  static trimContent(r) {
+    let g = 0, y = 0, P = !1, J = !1;
+    for (let b = 0;b < r.length; b++)
+      if (r[b] === " " || r[b] === "\n")
+        g += 1;
+      else
         break;
-      }
-    }
-    if (leftWhitespace === content.length) {
-      return { wsLeft: true, wsRight: true, trimmed: "" };
-    }
-    if (leftWhitespace > 0) {
-      content = content.substring(leftWhitespace);
-      wsLeft = true;
-    }
-    for (let i = content.length - 1;i >= 0; i--) {
-      if (content[i] === " " || content[i] === "\n") {
-        rightWhitespace += 1;
-      } else {
+    if (g === r.length)
+      return { wsLeft: !0, wsRight: !0, trimmed: "" };
+    if (g > 0)
+      r = r.substring(g), P = !0;
+    for (let b = r.length - 1;b >= 0; b--)
+      if (r[b] === " " || r[b] === "\n")
+        y += 1;
+      else
         break;
-      }
-    }
-    if (rightWhitespace > 0) {
-      content = content.substring(0, content.length - rightWhitespace);
-      wsRight = true;
-    }
-    return { wsLeft, wsRight, trimmed: content };
+    if (y > 0)
+      r = r.substring(0, r.length - y), J = !0;
+    return { wsLeft: P, wsRight: J, trimmed: r };
   }
-  static concatHtmlLines(lines, options) {
-    let result = "";
-    const indentLength = options?.indent ?? 2;
-    const singleIndent = " ".repeat(indentLength);
-    let currentIndent = "";
-    let inPre = 0;
-    for (let i = 0;i < lines.length; i++) {
-      const line = lines[i];
-      if (inPre > 0) {
-        const isLast = lines[i + 1]?.type === "tag-close" && lines[i + 1]?.tag === "pre";
-        const suffix = isLast ? "" : "\n";
-        switch (line.type) {
+  static concatHtmlLines(r, g) {
+    let y = "";
+    const P = g?.indent ?? 2, J = " ".repeat(P);
+    let b = "", S = 0;
+    for (let H = 0;H < r.length; H++) {
+      const T = r[H];
+      if (S > 0) {
+        const s = r[H + 1]?.type === "tag-close" && r[H + 1]?.tag === "pre" ? "" : "\n";
+        switch (T.type) {
           case "tag-open":
-            if (line.tag === "pre") {
-              inPre += 1;
-            }
-            result += line.content + suffix;
-            currentIndent += singleIndent;
+            if (T.tag === "pre")
+              S += 1;
+            y += T.content + s, b += J;
             break;
           case "tag-close":
-            if (line.tag === "pre") {
-              inPre -= 1;
-            }
-            result += line.content + suffix;
-            currentIndent = currentIndent.substring(indentLength);
+            if (T.tag === "pre")
+              S -= 1;
+            y += T.content + s, b = b.substring(P);
             break;
           case "tag-inline":
-            result += line.content + suffix;
+            y += T.content + s;
             break;
           case "tag-selfclose":
-            result += line.content + suffix;
+            y += T.content + s;
             break;
           case "text":
-            result += line.content + suffix;
+            y += T.content + s;
             break;
         }
-      } else {
-        switch (line.type) {
+      } else
+        switch (T.type) {
           case "tag-open": {
-            let suffix = "\n";
-            if (line.tag === "pre") {
-              inPre += 1;
-              suffix = "";
-            } else {
-              const nextLine = lines[i + 1];
-              const addNewLine = nextLine ? nextLine.type === "tag-open" || nextLine.type === "tag-selfclose" : true;
-              if (!addNewLine) {
-                suffix = "";
-              } else if (result.length && result.at(-1) !== "\n") {
-                result += "\n";
-              }
+            let X = "\n";
+            if (T.tag === "pre")
+              S += 1, X = "";
+            else {
+              const M = r[H + 1];
+              if (!(M ? M.type === "tag-open" || M.type === "tag-selfclose" : !0))
+                X = "";
+              else if (y.length && y.at(-1) !== "\n")
+                y += "\n";
             }
-            const addIndent = result.at(-1) === "\n";
-            if (addIndent) {
-              result += currentIndent + line.content + suffix;
-            } else {
-              result += line.content + suffix;
-            }
-            currentIndent += singleIndent;
+            if (y.at(-1) === "\n")
+              y += b + T.content + X;
+            else
+              y += T.content + X;
+            b += J;
             break;
           }
           case "tag-close": {
-            currentIndent = currentIndent.substring(indentLength);
-            const nextLine = lines[i + 1];
-            const addIndent = result.at(-1) === "\n";
-            const addNewLine = nextLine ? nextLine.type === "tag-close" || nextLine.type === "tag-selfclose" : true;
-            if (addIndent) {
-              result += currentIndent;
-            }
-            result += line.content;
-            if (addNewLine) {
-              result += "\n";
-            }
+            b = b.substring(P);
+            const X = r[H + 1], s = y.at(-1) === "\n", M = X ? X.type === "tag-close" || X.type === "tag-selfclose" : !0;
+            if (s)
+              y += b;
+            if (y += T.content, M)
+              y += "\n";
             break;
           }
           case "tag-inline": {
-            const nextLine = lines[i + 1];
-            const addIndent = result.at(-1) === "\n";
-            const addNewLine = nextLine ? nextLine.type !== "text" : true;
-            if (addIndent) {
-              result += currentIndent;
-            }
-            result += line.content;
-            if (addNewLine) {
-              result += "\n";
-            }
+            const X = r[H + 1], s = y.at(-1) === "\n", M = X ? X.type !== "text" : !0;
+            if (s)
+              y += b;
+            if (y += T.content, M)
+              y += "\n";
             break;
           }
           case "tag-selfclose": {
-            result += currentIndent + line.content + "\n";
+            y += b + T.content + "\n";
             break;
           }
           case "text": {
-            const content = _BaseHtmlGenerator.trimContent(line.content);
-            const nextLine = lines[i + 1];
-            const addIndent = result.at(-1) === "\n";
-            if (addIndent) {
-              result += _BaseHtmlGenerator.leftPad(content.trimmed, currentIndent);
-            } else {
-              if (content.wsLeft && content.trimmed !== "") {
-                result += "\n" + _BaseHtmlGenerator.leftPad(content.trimmed, currentIndent);
-              } else {
-                result += content.trimmed;
-              }
-            }
-            if (content.wsRight && nextLine?.type !== "tag-close") {
-              result += "\n";
-            }
+            const X = V.trimContent(T.content), s = r[H + 1];
+            if (y.at(-1) === "\n")
+              y += V.leftPad(X.trimmed, b);
+            else if (X.wsLeft && X.trimmed !== "")
+              y += "\n" + V.leftPad(X.trimmed, b);
+            else
+              y += X.trimmed;
+            if (X.wsRight && s?.type !== "tag-close")
+              y += "\n";
             break;
           }
         }
-      }
     }
-    return result;
+    return y;
   }
+}
+
+// ../html-renderer/jsx-elem-to-html-sync.ts
+class a extends V {
+  createTextNode(r) {
+    return String(r);
+  }
+  createElement(r, g, y) {
+    const P = F(g), J = this.flattenChildrenCompact(y);
+    return this.generateTagCompact(r, P, J);
+  }
+  createFragment(r) {
+    return this.flattenChildrenCompact(r);
+  }
+}
+
+class Z extends V {
+  createTextNode(r) {
+    return [{ type: "text", content: String(r) }];
+  }
+  createElement(r, g, y) {
+    const P = F(g), J = this.flattenChildren(y);
+    return this.generateTag(r, P, J);
+  }
+  createFragment(r) {
+    return this.flattenChildren(r);
+  }
+}
+var _ = (r, g, y = {}) => {
+  const { pretty: P = !1 } = y;
+  if (P) {
+    const b = new E(new Z(y), { ...y, allowAsync: !1 }, g).render(r);
+    return Z.concatHtmlLines(b, y);
+  } else
+    return new E(new a(y), { ...y, allowAsync: !1 }, g).render(r);
 };
 
-// ../html-renderer/jsx-elem-to-html-sync.mjs
-var HtmlCompactGenerator = class extends BaseHtmlGenerator {
-  createTextNode(text) {
-    return String(text);
+// ../json-renderer/jsx-elem-to-json.ts
+class L {
+  createTextNode(r) {
+    return r;
   }
-  createElement(type, attributes, children) {
-    const attributesString = mapAttributesToHtmlTagString(attributes);
-    const content = this.flattenChildrenCompact(children);
-    return this.generateTagCompact(type, attributesString, content);
-  }
-  createFragment(children) {
-    return this.flattenChildrenCompact(children);
-  }
-};
-var HtmlPrettyGenerator = class extends BaseHtmlGenerator {
-  createTextNode(text) {
-    return [{ type: "text", content: String(text) }];
-  }
-  createElement(type, attributes, children) {
-    const attributesString = mapAttributesToHtmlTagString(attributes);
-    const content = this.flattenChildren(children);
-    return this.generateTag(type, attributesString, content);
-  }
-  createFragment(children) {
-    return this.flattenChildren(children);
-  }
-};
-var jsxElemToHtmlSync = (element, componentApi, options = {}) => {
-  const { pretty = false } = options;
-  if (pretty) {
-    const renderer = new JsxteRenderer(new HtmlPrettyGenerator(options), { ...options, allowAsync: false }, componentApi);
-    const lines = renderer.render(element);
-    return HtmlPrettyGenerator.concatHtmlLines(lines, options);
-  } else {
-    const renderer = new JsxteRenderer(new HtmlCompactGenerator(options), { ...options, allowAsync: false }, componentApi);
-    return renderer.render(element);
-  }
-};
-
-// ../json-renderer/jsx-elem-to-json.mjs
-var JsonGenerator = class {
-  createTextNode(text) {
-    return text;
-  }
-  createElement(type, attributes, children) {
+  createElement(r, g, y) {
     return {
-      element: type,
-      attributes,
-      children
+      element: r,
+      attributes: g,
+      children: y
     };
   }
-  createFragment(children) {
+  createFragment(r) {
     return {
       element: "",
       attributes: [],
-      children
+      children: r
     };
   }
+}
+var G = (r, g, y) => {
+  return new E(new L, { ...y, allowAsync: !1 }, g).render(r);
 };
-var jsxElemToJsonSync = (element, componentApi, options) => {
-  const renderer = new JsxteRenderer(new JsonGenerator, { ...options, allowAsync: false }, componentApi);
-  return renderer.render(element);
-};
-var AsyncJsonGenerator = class {
-  createTextNode(text) {
-    return text;
+
+class D {
+  createTextNode(r) {
+    return r;
   }
-  async createElement(type, attributes, children) {
+  async createElement(r, g, y) {
     return {
-      element: type,
-      attributes,
-      children: await Promise.resolve(children).then((c) => Promise.all(c))
+      element: r,
+      attributes: g,
+      children: await Promise.resolve(y).then((P) => Promise.all(P))
     };
   }
-  async createFragment(children) {
+  async createFragment(r) {
     return {
       element: "",
       attributes: [],
-      children: await Promise.resolve(children).then((c) => Promise.all(c))
+      children: await Promise.resolve(r).then((g) => Promise.all(g))
     };
   }
-};
-var jsxElemToJsonAsync = (element, componentApi, options) => {
-  const renderer = new JsxteRenderer(new AsyncJsonGenerator, { ...options, allowAsync: true }, componentApi);
-  return renderer.render(element);
+}
+var w = (r, g, y) => {
+  return new E(new D, { ...y, allowAsync: !0 }, g).render(r);
 };
 
-// ../component-api/component-api.mjs
-var __defProp3 = Object.defineProperty;
-var __defNormalProp3 = (obj, key, value) => (key in obj) ? __defProp3(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField3 = (obj, key, value) => {
-  __defNormalProp3(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
-var ContextAccessor = class _ContextAccessor {
-  constructor(map = /* @__PURE__ */ new Map) {
-    this.map = map;
+// ../component-api/component-api.ts
+class q {
+  r;
+  static clone(r) {
+    return new q(new Map(r.map));
   }
-  static clone(original) {
-    return new _ContextAccessor(new Map(original.map));
+  constructor(r = /* @__PURE__ */ new Map) {
+    this.map = r;
   }
-  getOrFail(ref) {
-    const value = this.map.get(ref.id);
-    if (value === undefined) {
+  getOrFail(r) {
+    const g = this.map.get(r.id);
+    if (g === void 0)
       throw new Error("Context not defined! Make sure the context is set before accessing it.");
-    }
-    return value;
+    return g;
   }
-  get(ref) {
-    const value = this.map.get(ref.id);
-    return value;
+  get(r) {
+    return this.map.get(r.id);
   }
-  update(ref, updateData) {
-    const data = this.get(ref);
-    if (typeof data === "object" && data !== null && typeof updateData === "object" && updateData !== null) {
-      if (Array.isArray(data)) {
-        const arr = Array.from(data);
-        const entries = Object.entries(updateData);
-        for (let i = 0;i < entries.length; i++) {
-          const [key, value] = entries[i];
-          const index = Number(key);
-          if (!isNaN(index))
-            arr[index] = value;
+  update(r, g) {
+    const y = this.get(r);
+    if (typeof y === "object" && y !== null && typeof g === "object" && g !== null)
+      if (Array.isArray(y)) {
+        const P = Array.from(y), J = Object.entries(g);
+        for (let b = 0;b < J.length; b++) {
+          const [S, H] = J[b], T = Number(S);
+          if (!isNaN(T))
+            P[T] = H;
         }
-        return void this.map.set(ref.id, arr);
-      } else {
-        return void this.map.set(ref.id, { ...data, ...updateData });
-      }
-    } else {
+        return void this.map.set(r.id, P);
+      } else
+        return void this.map.set(r.id, { ...y, ...g });
+    else
       throw new Error("Context data is not an object!. Partial updates are only possible for objects.");
-    }
   }
-  set(ref, data) {
-    this.map.set(ref.id, data);
+  set(r, g) {
+    this.map.set(r.id, g);
   }
-  has(ref) {
-    return this.map.has(ref.id);
+  has(r) {
+    return this.map.has(r.id);
   }
-  replace(context) {
-    this.map = context.map;
+  replace(r) {
+    this.map = r.map;
   }
-};
-var ComponentApi = class _ComponentApi {
-  constructor(options, accessor) {
-    this.options = options;
-    __publicField3(this, "ctx");
-    this.ctx = accessor ?? new ContextAccessor;
-  }
-  static create(options) {
-    return new _ComponentApi(options);
-  }
-  static clone(original) {
-    return new _ComponentApi(original.options, ContextAccessor.clone(original.ctx));
-  }
-  render(component, optionsOverrides) {
-    const thisCopy = _ComponentApi.clone(this);
-    if (optionsOverrides) {
-      return jsxElemToHtmlSync(component, thisCopy, {
-        ...this.options,
-        ...optionsOverrides
-      });
-    }
-    return jsxElemToHtmlSync(component, thisCopy, this.options);
-  }
-  async renderAsync(component, optionsOverrides) {
-    const thisCopy = _ComponentApi.clone(this);
-    if (optionsOverrides) {
-      return Promise.resolve(component).then((c) => jsxElemToHtmlAsync(c, thisCopy, {
-        ...this.options,
-        ...optionsOverrides
-      }));
-    }
-    return Promise.resolve(component).then((c) => jsxElemToHtmlAsync(c, thisCopy, this.options));
-  }
-  renderToJson(component, optionsOverrides) {
-    const thisCopy = _ComponentApi.clone(this);
-    if (optionsOverrides) {
-      return jsxElemToJsonSync(component, thisCopy, {
-        ...this.options,
-        ...optionsOverrides
-      });
-    }
-    return jsxElemToJsonSync(component, thisCopy, this.options);
-  }
-  async renderToJsonAsync(component, optionsOverrides) {
-    const thisCopy = _ComponentApi.clone(this);
-    if (optionsOverrides) {
-      return Promise.resolve(component).then((c) => jsxElemToJsonAsync(c, thisCopy, {
-        ...this.options,
-        ...optionsOverrides
-      }));
-    }
-    return Promise.resolve(component).then((c) => jsxElemToJsonAsync(c, thisCopy, this.options));
-  }
-  renderToDom(window, component, optionsOverrides) {
-    const thisCopy = _ComponentApi.clone(this);
-    if (optionsOverrides) {
-      const r2 = new DomRenderer(window, {
-        ...this.options,
-        ...optionsOverrides
-      });
-      return r2.render(component, thisCopy);
-    }
-    const r = new DomRenderer(window, this.options);
-    return r.render(component, thisCopy);
-  }
-  async renderToDomAsync(window, component, optionsOverrides) {
-    const thisCopy = _ComponentApi.clone(this);
-    if (optionsOverrides) {
-      const r2 = new DomRenderer(window, {
-        ...this.options,
-        ...optionsOverrides
-      });
-      return Promise.resolve(component).then((c) => r2.renderAsync(c, thisCopy));
-    }
-    const r = new DomRenderer(window, this.options);
-    return Promise.resolve(component).then((c) => r.renderAsync(c, thisCopy));
-  }
-};
+}
 
-// ../error-boundary/error-boundary.mjs
-var __defProp4 = Object.defineProperty;
-var __defNormalProp4 = (obj, key, value) => (key in obj) ? __defProp4(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField4 = (obj, key, value) => {
-  __defNormalProp4(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
-var ErrorBoundary = class {
-  static _isErrorBoundary(o) {
-    const canBeClass = typeof o === "function";
-    const isNotNull = o !== null;
-    if (!canBeClass || !isNotNull)
-      return false;
-    const baseName = o._baseName;
-    return baseName === this._baseName;
+class f {
+  r;
+  static create(r) {
+    return new f(r);
   }
-  constructor(_) {
+  static clone(r) {
+    return new f(r.options, q.clone(r.ctx));
   }
-};
-__publicField4(ErrorBoundary, "_baseName", "ErrorBoundary");
+  ctx;
+  constructor(r, g) {
+    this.options = r;
+    this.ctx = g ?? new q;
+  }
+  render(r, g) {
+    const y = f.clone(this);
+    if (g)
+      return _(r, y, {
+        ...this.options,
+        ...g
+      });
+    return _(r, y, this.options);
+  }
+  async renderAsync(r, g) {
+    const y = f.clone(this);
+    if (g)
+      return Promise.resolve(r).then((P) => k(P, y, {
+        ...this.options,
+        ...g
+      }));
+    return Promise.resolve(r).then((P) => k(P, y, this.options));
+  }
+  renderToJson(r, g) {
+    const y = f.clone(this);
+    if (g)
+      return G(r, y, {
+        ...this.options,
+        ...g
+      });
+    return G(r, y, this.options);
+  }
+  async renderToJsonAsync(r, g) {
+    const y = f.clone(this);
+    if (g)
+      return Promise.resolve(r).then((P) => w(P, y, {
+        ...this.options,
+        ...g
+      }));
+    return Promise.resolve(r).then((P) => w(P, y, this.options));
+  }
+  renderToDom(r, g, y) {
+    const P = f.clone(this);
+    if (y)
+      return new U(r, {
+        ...this.options,
+        ...y
+      }).render(g, P);
+    return new U(r, this.options).render(g, P);
+  }
+  async renderToDomAsync(r, g, y) {
+    const P = f.clone(this);
+    if (y) {
+      const b = new U(r, {
+        ...this.options,
+        ...y
+      });
+      return Promise.resolve(g).then((S) => b.renderAsync(S, P));
+    }
+    const J = new U(r, this.options);
+    return Promise.resolve(g).then((b) => J.renderAsync(b, P));
+  }
+}
 
-// ../utilities/get-component-name.mjs
-var getComponentName = (element) => {
-  if (typeof element.tag === "string") {
-    return element.tag;
+class p {
+  id = Symbol();
+  Provider = (r, g) => {
+    return g.ctx.set(this, r.value), R("", { children: r.children });
+  };
+  Consumer = (r, g) => {
+    const y = g.ctx.get(this);
+    return r.render(y);
+  };
+}
+
+// ../error-boundary/error-boundary.ts
+class z {
+  static _isErrorBoundary(r) {
+    if (typeof r !== "function" || r === null)
+      return !1;
+    return r._baseName === this._baseName;
   }
-  if ("displayName" in element.tag && typeof element.tag.displayName === "string") {
-    return element.tag.displayName;
+  static _baseName = "ErrorBoundary";
+  constructor(r) {
   }
-  if ("name" in element.tag && typeof element.tag.name === "string") {
-    return element.tag.name;
-  }
+}
+
+// ../utilities/get-component-name.ts
+var W = (r) => {
+  if (typeof r.tag === "string")
+    return r.tag;
+  if ("displayName" in r.tag && typeof r.tag.displayName === "string")
+    return r.tag.displayName;
+  if ("name" in r.tag && typeof r.tag.name === "string")
+    return r.tag.name;
   return "AnonymousComponent";
 };
 
-// ../utilities/get-err-message.mjs
-var getErrorMessage = (err) => {
-  if (err instanceof Error) {
-    return err.message;
-  }
-  if (typeof err === "string") {
-    return err;
-  }
-  return String(err);
+// ../utilities/get-err-message.ts
+var C = (r) => {
+  if (r instanceof Error)
+    return r.message;
+  if (typeof r === "string")
+    return r;
+  return String(r);
 };
 
-// ../renderer/renderer.mjs
-function isTagElement(element) {
-  return typeof element === "object" && element !== null && "type" in element && element.type === "tag";
+// ../renderer/renderer.ts
+function i(r) {
+  return typeof r === "object" && r !== null && "type" in r && r.type === "tag";
 }
-function isErrorBoundaryElement(element) {
-  return typeof element.tag === "function" && ErrorBoundary._isErrorBoundary(element.tag);
+function d(r) {
+  return typeof r.tag === "function" && z._isErrorBoundary(r.tag);
 }
-function isPromiseLike(obj) {
-  return obj instanceof Promise || typeof obj === "object" && obj !== null && typeof obj.then === "function" && typeof obj.catch === "function";
+function K(r) {
+  return r instanceof Promise || typeof r === "object" && r !== null && typeof r.then === "function" && typeof r.catch === "function";
 }
-function asyncError() {
-  throw new JsxteRenderError("Encountered an async Component: Asynchronous Component's cannot be parsed by this renderer.");
+function O() {
+  throw new $("Encountered an async Component: Asynchronous Component's cannot be parsed by this renderer.");
 }
-var __defProp5 = Object.defineProperty;
-var __defNormalProp5 = (obj, key, value) => (key in obj) ? __defProp5(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __publicField5 = (obj, key, value) => {
-  __defNormalProp5(obj, typeof key !== "symbol" ? key + "" : key, value);
-  return value;
-};
-var NIL = Symbol("NIL");
-var ElementMatcher = class {
-  constructor(options) {
-    this.options = options;
-    __publicField5(this, "stringTagHandler");
-    __publicField5(this, "functionTagHandler");
-    __publicField5(this, "classTagHandler");
-    __publicField5(this, "fragmentHandler");
-    __publicField5(this, "textHandler");
-    __publicField5(this, "primitiveHandler");
-    __publicField5(this, "handleError");
+var N = Symbol("NIL");
+
+class j {
+  r;
+  stringTagHandler;
+  functionTagHandler;
+  classTagHandler;
+  fragmentHandler;
+  textHandler;
+  primitiveHandler;
+  handleError;
+  constructor(r) {
+    this.options = r;
   }
-  matchSyncElem(element, context) {
-    switch (typeof element) {
+  matchSyncElem(r, g) {
+    switch (typeof r) {
       case "string":
       case "bigint":
       case "number":
-        return this.primitiveHandler(element, context, element);
+        return this.primitiveHandler(r, g, r);
       case "boolean":
       case "function":
       case "symbol":
       case "undefined":
-        return NIL;
+        return N;
     }
-    if (element === null) {
-      return NIL;
-    }
-    if (element.type === "textNode") {
-      return this.textHandler(element, context, element);
-    }
-    if (element.type === "tag") {
-      if (typeof element.tag === "string") {
-        if (element.tag === "") {
-          return this.fragmentHandler(element.props.children, context, element);
-        }
+    if (r === null)
+      return N;
+    if (r.type === "textNode")
+      return this.textHandler(r, g, r);
+    if (r.type === "tag") {
+      if (typeof r.tag === "string") {
+        if (r.tag === "")
+          return this.fragmentHandler(r.props.children, g, r);
         return this.stringTagHandler({
-          tag: element.tag,
-          props: element.props
-        }, context, element);
+          tag: r.tag,
+          props: r.props
+        }, g, r);
       }
-      if (typeof element.tag === "function") {
-        if (ErrorBoundary._isErrorBoundary(element.tag)) {
+      if (typeof r.tag === "function")
+        if (z._isErrorBoundary(r.tag))
           return this.classTagHandler({
-            classComponent: element.tag,
-            props: element.props
-          }, context, element);
-        } else {
+            classComponent: r.tag,
+            props: r.props
+          }, g, r);
+        else
           return this.functionTagHandler({
-            funcComponent: element.tag,
-            props: element.props
-          }, context, element);
-        }
-      }
+            funcComponent: r.tag,
+            props: r.props
+          }, g, r);
     }
-    return NIL;
+    return N;
   }
-  createHandler(func) {
-    return (...args) => {
+  createHandler(r) {
+    return (...g) => {
       try {
-        const result = func.apply(null, args);
-        if (isPromiseLike(result)) {
-          return result.catch((err) => {
-            return this.handleError(err, args[2], args[1]);
+        const y = r.apply(null, g);
+        if (K(y))
+          return y.catch((P) => {
+            return this.handleError(P, g[2], g[1]);
           });
-        }
-        return result;
-      } catch (err) {
-        return this.handleError(err, args[2], args[1]);
+        return y;
+      } catch (y) {
+        return this.handleError(y, g[2], g[1]);
       }
     };
   }
-  functionTag(on) {
-    this.functionTagHandler = this.createHandler(on);
-    return this;
+  functionTag(r) {
+    return this.functionTagHandler = this.createHandler(r), this;
   }
-  classTag(on) {
-    this.classTagHandler = this.createHandler(on);
-    return this;
+  classTag(r) {
+    return this.classTagHandler = this.createHandler(r), this;
   }
-  stringTag(on) {
-    this.stringTagHandler = this.createHandler(on);
-    return this;
+  stringTag(r) {
+    return this.stringTagHandler = this.createHandler(r), this;
   }
-  fragment(on) {
-    this.fragmentHandler = this.createHandler(on);
-    return this;
+  fragment(r) {
+    return this.fragmentHandler = this.createHandler(r), this;
   }
-  text(on) {
-    this.textHandler = this.createHandler(on);
-    return this;
+  text(r) {
+    return this.textHandler = this.createHandler(r), this;
   }
-  primitive(on) {
-    this.primitiveHandler = this.createHandler(on);
-    return this;
+  primitive(r) {
+    return this.primitiveHandler = this.createHandler(r), this;
   }
-  onError(on) {
-    this.handleError = on;
-    return this;
+  onError(r) {
+    return this.handleError = r, this;
   }
-  match(element, context) {
-    if (isPromiseLike(element)) {
-      if (this.options.allowAsync === false) {
-        asyncError();
-      }
-      return element.then((element2) => {
-        return this.matchSyncElem(element2, {
-          componentApi: ComponentApi.clone(context.componentApi)
+  match(r, g) {
+    if (K(r)) {
+      if (this.options.allowAsync === !1)
+        O();
+      return r.then((y) => {
+        return this.matchSyncElem(y, {
+          componentApi: f.clone(g.componentApi)
         });
       });
     }
-    return this.matchSyncElem(element, {
-      componentApi: ComponentApi.clone(context.componentApi)
+    return this.matchSyncElem(r, {
+      componentApi: f.clone(g.componentApi)
     });
   }
-  matchMap(elements, mapFn) {
-    const results = [];
-    const awaits = [];
-    for (let i = 0;i < elements.length; i++) {
-      const element = elements[i];
-      const r = mapFn(element, (element2, context) => this.match(element2, context));
-      if (isPromiseLike(r)) {
-        if (this.options.allowAsync === false) {
-          asyncError();
-        }
-        awaits.push(r.then((result) => {
-          if (result !== NIL) {
-            results[i] = result;
-          }
+  matchMap(r, g) {
+    const y = [], P = [];
+    for (let J = 0;J < r.length; J++) {
+      const b = r[J], S = g(b, (H, T) => this.match(H, T));
+      if (K(S)) {
+        if (this.options.allowAsync === !1)
+          O();
+        P.push(S.then((H) => {
+          if (H !== N)
+            y[J] = H;
         }));
-      } else if (r !== NIL) {
-        results[i] = r;
-      }
+      } else if (S !== N)
+        y[J] = S;
     }
-    if (awaits.length === 0) {
-      return results;
-    }
-    return Promise.all(awaits).then(() => {
-      return results;
+    if (P.length === 0)
+      return y;
+    return Promise.all(P).then(() => {
+      return y;
     });
   }
-};
-var JsxteRenderer = class {
-  constructor(generator, options = { allowAsync: false }, rootComponentApi = ComponentApi.create(options)) {
-    this.generator = generator;
-    this.options = options;
-    this.rootComponentApi = rootComponentApi;
-    __publicField5(this, "matcher");
-    this.matcher = new ElementMatcher(options);
-    const renderer = this;
-    this.matcher.functionTag((tagElement, context) => {
-      const elem = tagElement.funcComponent(tagElement.props, context.componentApi);
-      return renderer.renderChild(elem, context);
-    }).classTag((tagElement, context) => {
-      const compoentInstance = new tagElement.classComponent(tagElement.props);
-      const elem = compoentInstance.render(tagElement.props, context.componentApi);
-      return renderer.renderChild(elem, context);
-    }).stringTag((tagElement, context) => {
-      const { attributes, children } = this.resolveProps(tagElement.props);
-      const renderedChildren = this.matcher.matchMap(children, (child, next) => next(child, {
-        componentApi: ComponentApi.clone(context.componentApi)
+}
+
+class E {
+  r;
+  g;
+  y;
+  matcher;
+  constructor(r, g = { allowAsync: !1 }, y = f.create(g)) {
+    this.generator = r;
+    this.options = g;
+    this.rootComponentApi = y;
+    this.matcher = new j(g);
+    const P = this;
+    this.matcher.functionTag((J, b) => {
+      const S = J.funcComponent(J.props, b.componentApi);
+      return P.renderChild(S, b);
+    }).classTag((J, b) => {
+      const H = new J.classComponent(J.props).render(J.props, b.componentApi);
+      return P.renderChild(H, b);
+    }).stringTag((J, b) => {
+      const { attributes: S, children: H } = this.resolveProps(J.props), T = this.matcher.matchMap(H, (X, s) => s(X, {
+        componentApi: f.clone(b.componentApi)
       }));
-      return this.generator.createElement(tagElement.tag, attributes, renderedChildren);
-    }).fragment((fragmentElement, context) => {
-      const childrenArray = Array.isArray(fragmentElement) ? fragmentElement.flat(1) : [fragmentElement];
-      const renderedChildren = this.matcher.matchMap(childrenArray, (child, next) => next(child, {
-        componentApi: ComponentApi.clone(context.componentApi)
+      return this.generator.createElement(J.tag, S, T);
+    }).fragment((J, b) => {
+      const S = Array.isArray(J) ? J.flat(1) : [J], H = this.matcher.matchMap(S, (T, X) => X(T, {
+        componentApi: f.clone(b.componentApi)
       }));
-      return this.generator.createFragment(renderedChildren);
-    }).text((textNode) => {
-      return this.generator.createTextNode(textNode.text);
-    }).primitive((primitive) => {
-      return this.generator.createTextNode(primitive);
-    }).onError((err, element, context) => {
-      if (!isTagElement(element)) {
-        throw err;
-      }
-      if (isErrorBoundaryElement(element)) {
+      return this.generator.createFragment(H);
+    }).text((J) => {
+      return this.generator.createTextNode(J.text);
+    }).primitive((J) => {
+      return this.generator.createTextNode(J);
+    }).onError((J, b, S) => {
+      if (!i(b))
+        throw J;
+      if (d(b))
         return this.renderChild({
           type: "tag",
-          tag: function ErrorHandler() {
-            const component = new element.tag(element.props);
-            return component.onError(err, element.props, context.componentApi);
+          tag: function H() {
+            return new b.tag(b.props).onError(J, b.props, S.componentApi);
           },
           props: {}
-        }, context);
-      }
-      if (!JsxteRenderError.is(err)) {
-        throw new JsxteRenderError("Rendering has failed due to an error: " + getErrorMessage(err), getComponentName(element));
-      }
-      err.pushParent(getComponentName(element));
-      throw err;
+        }, S);
+      if (!$.is(J))
+        throw new $("Rendering has failed due to an error: " + C(J), W(b));
+      throw J.pushParent(W(b)), J;
     });
   }
-  mapAttributeName(attributeName) {
-    if (this.options.attributeMap && attributeName in this.options.attributeMap) {
-      return this.options.attributeMap[attributeName];
-    }
-    return attributeName;
+  mapAttributeName(r) {
+    if (this.options.attributeMap && r in this.options.attributeMap)
+      return this.options.attributeMap[r];
+    return r;
   }
   resolveProps({
-    children,
-    ...props
+    children: r,
+    ...g
   }) {
-    const rprops = {
+    const y = {
       attributes: [],
       children: []
     };
-    if (children) {
-      if (Array.isArray(children)) {
-        rprops.children = children.flat(1);
-      } else {
-        rprops.children = [children];
-      }
+    if (r)
+      if (Array.isArray(r))
+        y.children = r.flat(1);
+      else
+        y.children = [r];
+    const P = Object.entries(g);
+    for (let J = 0;J < P.length; J++) {
+      const [b, S] = P[J];
+      y.attributes.push([this.mapAttributeName(b), S]);
     }
-    const entries = Object.entries(props);
-    for (let i = 0;i < entries.length; i++) {
-      const [name, value] = entries[i];
-      rprops.attributes.push([this.mapAttributeName(name), value]);
-    }
-    return rprops;
+    return y;
   }
-  renderChild(element, context) {
-    if (element === null) {
-      return NIL;
-    }
-    return this.matcher.match(element, context);
+  renderChild(r, g) {
+    if (r === null)
+      return N;
+    return this.matcher.match(r, g);
   }
-  render(element) {
-    const result = this.renderChild(element, {
+  render(r) {
+    const g = this.renderChild(r, {
       componentApi: this.rootComponentApi
     });
-    if (result === NIL) {
+    if (g === N)
       return this.generator.createTextNode("");
-    }
-    if (isPromiseLike(result)) {
-      return result.then((result2) => {
-        if (result2 === NIL) {
+    if (K(g))
+      return g.then((y) => {
+        if (y === N)
           return this.generator.createTextNode("");
-        }
-        return result2;
+        return y;
       });
-    }
-    return result;
+    return g;
   }
-};
+}
 
-// ../html-renderer/jsx-elem-to-html-async.mjs
-var AsyncHtmlCompactGenerator = class extends BaseHtmlGenerator {
-  createElement(type, attributes, children) {
-    return Promise.resolve(children).then((c) => Promise.all(c)).then((children2) => {
-      const attributesString = mapAttributesToHtmlTagString(attributes);
-      const content = this.flattenChildrenCompact(children2);
-      return this.generateTagCompact(type, attributesString, content);
+// ../html-renderer/jsx-elem-to-html-async.ts
+class I extends V {
+  createElement(r, g, y) {
+    return Promise.resolve(y).then((P) => Promise.all(P)).then((P) => {
+      const J = F(g), b = this.flattenChildrenCompact(P);
+      return this.generateTagCompact(r, J, b);
     });
   }
-  createTextNode(text) {
-    return String(text);
+  createTextNode(r) {
+    return String(r);
   }
-  createFragment(children) {
-    return Promise.resolve(children).then((c) => Promise.all(c)).then((children2) => {
-      return this.flattenChildrenCompact(children2);
+  createFragment(r) {
+    return Promise.resolve(r).then((g) => Promise.all(g)).then((g) => {
+      return this.flattenChildrenCompact(g);
     });
   }
-};
-var AsyncHtmlPrettyGenerator = class extends BaseHtmlGenerator {
-  createElement(type, attributes, children) {
-    return Promise.resolve(children).then((c) => Promise.all(c)).then((children2) => {
-      const attributesString = mapAttributesToHtmlTagString(attributes);
-      const content = this.flattenChildren(children2);
-      return this.generateTag(type, attributesString, content);
+}
+
+class A extends V {
+  createElement(r, g, y) {
+    return Promise.resolve(y).then((P) => Promise.all(P)).then((P) => {
+      const J = F(g), b = this.flattenChildren(P);
+      return this.generateTag(r, J, b);
     });
   }
-  createTextNode(text) {
-    return [{ type: "text", content: String(text) }];
+  createTextNode(r) {
+    return [{ type: "text", content: String(r) }];
   }
-  createFragment(children) {
-    return Promise.resolve(children).then((c) => Promise.all(c)).then((children2) => {
-      return this.flattenChildren(children2);
+  createFragment(r) {
+    return Promise.resolve(r).then((g) => Promise.all(g)).then((g) => {
+      return this.flattenChildren(g);
     });
   }
-};
-var jsxElemToHtmlAsync = (element, componentApi, options = {}) => {
-  const { pretty = false } = options;
-  if (pretty) {
-    const renderer = new JsxteRenderer(new AsyncHtmlPrettyGenerator(options), { ...options, allowAsync: true }, componentApi);
-    const lines = renderer.render(element);
-    return Promise.resolve(lines).then((lines2) => AsyncHtmlPrettyGenerator.concatHtmlLines(lines2, options));
+}
+var k = (r, g, y = {}) => {
+  const { pretty: P = !1 } = y;
+  if (P) {
+    const b = new E(new A(y), { ...y, allowAsync: !0 }, g).render(r);
+    return Promise.resolve(b).then((S) => A.concatHtmlLines(S, y));
   } else {
-    const renderer = new JsxteRenderer(new AsyncHtmlCompactGenerator(options), { ...options, allowAsync: true }, componentApi);
-    return Promise.resolve(renderer.render(element));
+    const J = new E(new I(y), { ...y, allowAsync: !0 }, g);
+    return Promise.resolve(J.render(r));
   }
 };
 
-// ../html-renderer/render-to-html.mjs
-var renderToHtml = (component, options) => {
+// ../html-renderer/render-to-html.ts
+var c = (r, g) => {
   try {
-    return jsxElemToHtmlSync(component, undefined, options);
-  } catch (err) {
-    if (JsxteRenderError.is(err)) {
-      err.regenerateMessage();
-    }
-    throw err;
+    return _(r, void 0, g);
+  } catch (y) {
+    if ($.is(y))
+      y.regenerateMessage();
+    throw y;
   }
-};
-var renderToHtmlAsync = async (component, options) => {
+}, o = async (r, g) => {
   try {
-    return await jsxElemToHtmlAsync(await component, undefined, options);
-  } catch (err) {
-    if (JsxteRenderError.is(err)) {
-      err.regenerateMessage();
-    }
-    throw err;
+    return await k(await r, void 0, g);
+  } catch (y) {
+    if ($.is(y))
+      y.regenerateMessage();
+    throw y;
   }
 };
 
-// jsx-dev-runtime.mjs
-var jsxDEV = (tag, props) => {
-  const { children, ...restProps } = props ?? {};
-  if (Array.isArray(children)) {
-    return jsx(tag, restProps, ...children);
-  }
-  return jsx(tag, restProps, children);
+// jsx-dev-runtime.ts
+var jr = (r, g) => {
+  const { children: y, ...P } = g ?? {};
+  if (Array.isArray(y))
+    return R(r, P, ...y);
+  return R(r, P, y);
 };
 export {
-  renderToHtmlAsync,
-  renderToHtml,
-  jsxs,
-  jsxDEV,
-  jsx,
-  Fragment
+  o as renderToHtmlAsync,
+  c as renderToHtml,
+  u as jsxs,
+  jr as jsxDEV,
+  R as jsx,
+  x as Fragment
 };
