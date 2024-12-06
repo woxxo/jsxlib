@@ -1,0 +1,1 @@
+export const name = 'jsxlib v1.0.0';

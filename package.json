@@ -3,10 +3,11 @@
 	"version": "1.0.0",
 	"description": "JSX lib",
 	"license": "MIT",
-	"main": "./jsx/jsx-runtime.js",
+	"main": "./default/index.js",
 	"repository": "github:woxxo/jsxlib",
 	"exports": {
-		".": "./jsx/jsx-runtime.js",
+		".": "./default/index.js",
+		"./jsx": "./jsx/jsx-runtime.js",
 		"./jsx-runtime": "./jsx/jsx-runtime.js",
 		"./jsx-dev-runtime": "./jsx/jsx-runtime.js"
 	},
