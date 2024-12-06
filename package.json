@@ -1,0 +1,29 @@
+{
+	"name": "jsxlib",
+	"version": "1.0.0",
+	"description": "JSX lib",
+	"license": "MIT",
+	"main": "./jsx/jsx-runtime.js",
+	"repository": "github:woxxo/jsxlib",
+	"exports": {
+	  ".": {
+		"import": "./jsx/jsx-runtime.js",
+		"require": "./jsx/jsx-runtime.js"
+	  },
+	  "./jsx-runtime": {
+		"import": "./jsx/jsx-runtime.js",
+		"require": "./jsx/jsx-runtime.js"
+	  },
+	  "./jsx-dev-runtime": {
+		"import": "./jsx/jsx-runtime.js",
+		"require": "./jsx/jsx-runtime.js"
+	  }
+	},
+	"scripts": {
+		"build": "NODE_ENV=production bun build index.jsx --outdir ./out",
+		"builddev": "bun build index.jsx --outdir ./out",
+		"dev": "bun index.jsx",
+		"start": "NODE_ENV=production bun index.jsx"
+	}
+}
+  
