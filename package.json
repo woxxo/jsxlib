@@ -16,5 +16,8 @@
 		"builddev": "bun build index.jsx --outdir ./out",
 		"dev": "bun index.jsx",
 		"start": "NODE_ENV=production bun index.jsx"
+	},
+	"dependencies": {
+		"jsxlib": "github:woxxo/jsxlib"
 	}
 }
