@@ -1,4 +1,4 @@
-#Minified JSX library for Bun.js
+# Minified JSX library for Bun.js
 
 To use exports from package.json have to add itself as a dependency
 ```
